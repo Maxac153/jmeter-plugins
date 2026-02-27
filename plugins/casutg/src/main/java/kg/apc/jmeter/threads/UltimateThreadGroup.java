@@ -84,7 +84,6 @@ public class UltimateThreadGroup
             removeProperty(EXTERNAL_DATA_PROPERTY);
         }
 
-        //log.info("getData: "+ getProperty(DATA_PROPERTY));
         CollectionProperty overrideProp = getLoadFromExternalProperty();
         if (overrideProp != null) {
             return overrideProp;
@@ -94,7 +93,6 @@ public class UltimateThreadGroup
     }
 
     public void setData(CollectionProperty rows) {
-        //log.info("setData");
         setProperty(rows);
     }
 
@@ -117,7 +115,7 @@ public class UltimateThreadGroup
                 }
             }
 
-            log.info("Setting threads profile from property " + EXTERNAL_DATA_PROPERTY + ": " + loadProp);
+            log.info("Setting threads profile from property {}: {}", EXTERNAL_DATA_PROPERTY, loadProp);
             return JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.DATA_PROPERTY);
         }
         return null;
@@ -152,7 +150,6 @@ public class UltimateThreadGroup
             for (Object row1 : rows) {
                 CollectionProperty prop = (CollectionProperty) row1;
                 ArrayList<JMeterProperty> row = (ArrayList<JMeterProperty>) prop.getObjectValue();
-                //log.info(prop.getStringValue());
                 result += row.get(0).getIntValue();
             }
         }

@@ -23,11 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UltimateThreadGroupGui
@@ -36,6 +38,7 @@ public class UltimateThreadGroupGui
         CellEditorListener {
 
     public static final String WIKIPAGE = "UltimateThreadGroup";
+    public static final String PROFILE_PROPERTY = "THREADS_PROFILE";
     private static final Logger log = LoggerFactory.getLogger(UltimateThreadGroupGui.class);
     protected ConcurrentHashMap<String, AbstractGraphRow> model;
     private GraphPanelChart chart;
@@ -51,6 +54,7 @@ public class UltimateThreadGroupGui
     private LoopControlPanel loopPanel;
     protected PowerTableModel tableModel;
     protected JTable grid;
+    public static final JTextField inpThreadsSchedule = new JTextField();
     protected ButtonPanelAddCopyRemove buttons;
 
     public UltimateThreadGroupGui() {
@@ -69,9 +73,6 @@ public class UltimateThreadGroupGui
         // this magic LoopPanel provides functionality for thread loops
         createControllerPanel();
     }
-
-    public static final JTextField inpThreadsSchedule = new JTextField();
-    public static final String PROFILE_PROPERTY = "THREADS_PROFILE";
 
     /**
      * ✅ createParamsPanel() БЕЗ кнопки
@@ -186,27 +187,6 @@ public class UltimateThreadGroupGui
         }
     }
 
-
-    /**
-     * Загружает профиль из текста при нажатии Enter
-     */
-    private void loadProfileFromText() {
-        String profileText = inpThreadsSchedule.getText().trim();
-        if (!profileText.isEmpty()) {
-            parseAndLoadProfile(profileText);
-        }
-    }
-
-    private JTable createGrid() {
-        grid = new JTable();
-        grid.getDefaultEditor(String.class).addCellEditorListener(this);
-        createTableModel();
-        grid.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        grid.setMinimumSize(new Dimension(200, 100));
-
-        return grid;
-    }
-
     @Override
     public String getLabelResource() {
         return this.getClass().getSimpleName();
@@ -317,7 +297,7 @@ public class UltimateThreadGroupGui
 
                 String params = spawnGroup.substring(6, spawnGroup.length() - 1).trim();
                 String[] values = params.split(",");
-                log.debug("Params: {}", java.util.Arrays.toString(values));
+                log.debug("Params: {}", Arrays.toString(values));
 
                 if (values.length == 5) {
                     String[] parsed = {
@@ -328,7 +308,7 @@ public class UltimateThreadGroupGui
                             parseDuration(values[4].trim())
                     };
 
-                    log.debug("Parsed: {}", java.util.Arrays.toString(parsed));
+                    log.debug("Parsed: {}", Arrays.toString(parsed));
 
                     // Добавляем только если НЕ пустые значения
                     if (!parsed[0].isEmpty() && parsed[0].matches("\\d+")) {
@@ -338,7 +318,7 @@ public class UltimateThreadGroupGui
                             tableModel.setValueAt(parsed[col], rowIndex, col);
                         }
                         rowCount++;
-                        log.debug("✅ Added row {}: {}", rowIndex, java.util.Arrays.toString(parsed));
+                        log.debug("✅ Added row {}: {}", rowIndex, Arrays.toString(parsed));
                     } else {
                         log.warn("❌ Invalid threads count: '{}'", parsed[0]);
                     }
@@ -346,9 +326,6 @@ public class UltimateThreadGroupGui
                     log.warn("❌ Expected 5 params, got {}", values.length);
                 }
             }
-
-            log.info("✅ Profile loaded: {} → {} rows", profileText, rowCount);
-
         } catch (Exception e) {
             log.error("❌ Parse error: {}", e.getMessage(), e);
         } finally {
@@ -397,7 +374,8 @@ public class UltimateThreadGroupGui
 
         long now = System.currentTimeMillis();
 
-        chart.setxAxisLabelRenderer(new DateTimeRenderer(DateTimeRenderer.HHMMSS, now - 1)); //-1 because row.add(thread.getStartTime() - 1, 0)
+        // -1 because row.add(thread.getStartTime() - 1, 0)
+        chart.setxAxisLabelRenderer(new DateTimeRenderer(DateTimeRenderer.HHMMSS, now - 1));
         chart.setForcedMinX(now);
 
         row.add(now, 0);
@@ -443,7 +421,7 @@ public class UltimateThreadGroupGui
         chart.getChartSettings().setDrawFinalZeroingLines(true);
         chart.setxAxisLabel("Elapsed time");
         chart.setYAxisLabel("Number of active threads");
-        chart.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        chart.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         return chart;
     }
 
@@ -455,7 +433,6 @@ public class UltimateThreadGroupGui
         if (tableModel == null) {
             tableModel = new PowerTableModel(columnIdentifiers, columnClasses);
             tableModel.addTableModelListener(this);
-            // НЕ устанавливаем model здесь - делаем в createParamsPanel()
         }
     }
 
