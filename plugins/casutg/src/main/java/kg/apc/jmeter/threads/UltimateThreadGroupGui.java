@@ -70,14 +70,32 @@ public class UltimateThreadGroupGui
         createControllerPanel();
     }
 
+    public static final JTextField inpThreadsSchedule = new JTextField();
+    public static final String PROFILE_PROPERTY = "THREADS_PROFILE";
+
     private JPanel createParamsPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Threads Schedule"));
         panel.setPreferredSize(new Dimension(200, 200));
 
+        // Создадим отдельную панель для поля ввода с подписью
+        JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
+        JLabel inputLabel = new JLabel("Profile:");
+
+        inputPanel.add(inputLabel, BorderLayout.WEST);
+        inputPanel.add(inpThreadsSchedule, BorderLayout.CENTER);
+
+        // JScrollPane с таблицей
         JScrollPane scroll = new JScrollPane(createGrid());
-        scroll.setPreferredSize(scroll.getMinimumSize());
-        panel.add(scroll, BorderLayout.CENTER);
+        scroll.setPreferredSize(new Dimension(400, 120));
+
+        // Добавим панели с inputField и таблицей
+        JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
+        centerPanel.add(inputPanel, BorderLayout.NORTH);
+        centerPanel.add(scroll, BorderLayout.CENTER);
+
+        panel.add(centerPanel, BorderLayout.CENTER);
+
         buttons = new ButtonPanelAddCopyRemove(grid, tableModel, defaultValues);
         panel.add(buttons, BorderLayout.SOUTH);
 
@@ -121,6 +139,10 @@ public class UltimateThreadGroupGui
 
         if (tg instanceof UltimateThreadGroup) {
             UltimateThreadGroup utg = (UltimateThreadGroup) tg;
+
+            // Сохраняем значение профиля
+            utg.setProperty(PROFILE_PROPERTY, inpThreadsSchedule.getText());
+
             CollectionProperty rows = JMeterPluginsUtils.tableModelRowsToCollectionProperty(tableModel, UltimateThreadGroup.DATA_PROPERTY);
             utg.setData(rows);
             utg.setSamplerController((LoopController) loopPanel.createTestElement());
@@ -132,6 +154,11 @@ public class UltimateThreadGroupGui
     public void configure(TestElement tg) {
         super.configure(tg);
         UltimateThreadGroup utg = (UltimateThreadGroup) tg;
+
+        // Загружаем значение профиля
+        String profileValue = utg.getPropertyAsString(PROFILE_PROPERTY, "");
+        inpThreadsSchedule.setText(profileValue);
+
         JMeterProperty threadValues = utg.getData();
         if (!(threadValues instanceof NullProperty)) {
             CollectionProperty columns = (CollectionProperty) threadValues;
