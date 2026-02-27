@@ -19,8 +19,8 @@ import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jmeter.threads.JMeterThread;
 import org.apache.jmeter.threads.gui.AbstractThreadGroupGui;
 import org.apache.jorphan.collections.HashTree;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
@@ -74,48 +74,119 @@ public class UltimateThreadGroupGui
     public static final String PROFILE_PROPERTY = "THREADS_PROFILE";
 
     /**
-     * Добавляем обработчик изменения текста в поле профиля
+     * ✅ createParamsPanel() БЕЗ кнопки
      */
     private JPanel createParamsPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Threads Schedule"));
-        panel.setPreferredSize(new Dimension(200, 200));
 
-        // 1. Создаем tableModel
         createTableModel();
 
-        // 2. Создаем поле профиля
+        // Поле Profile (без кнопки)
         JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
         JLabel inputLabel = new JLabel("Profile:");
         inputPanel.add(inputLabel, BorderLayout.WEST);
         inputPanel.add(inpThreadsSchedule, BorderLayout.CENTER);
 
-        // Обработчик Enter
-        inpThreadsSchedule.addActionListener(e -> loadProfileFromText());
+        // ✅ Enter обрабатывает ВСЁ автоматически (JMeter var + обычный профиль)
+        inpThreadsSchedule.addActionListener(e -> loadJMeterVariableOrProfile());
 
-        // 3. Создаем и настраиваем таблицу
-        grid = new JTable(tableModel);  // ✅ ПЕРЕДАЕМ model СРАЗУ!
+        // Таблица
+        grid = new JTable(tableModel);
         grid.getDefaultEditor(String.class).addCellEditorListener(this);
         grid.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        grid.setMinimumSize(new Dimension(200, 100));
-
-        // ✅ grid.setModel(tableModel) БОЛЬШЕ НЕ НУЖЕН!
 
         JScrollPane scroll = new JScrollPane(grid);
         scroll.setPreferredSize(new Dimension(400, 120));
 
-        // 4. Собираем панель
         JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
         centerPanel.add(inputPanel, BorderLayout.NORTH);
         centerPanel.add(scroll, BorderLayout.CENTER);
         panel.add(centerPanel, BorderLayout.CENTER);
 
-        // 5. Кнопки
         buttons = new ButtonPanelAddCopyRemove(grid, tableModel, defaultValues);
         panel.add(buttons, BorderLayout.SOUTH);
 
         return panel;
     }
+
+    private void loadJMeterVariable() {
+        String fieldText = inpThreadsSchedule.getText().trim();
+        if (fieldText.isEmpty()) return;
+
+        try {
+            // ✅ ПРАВИЛЬНЫЙ способ обработки JMeter функций/переменных
+            String resolvedValue = resolveJMeterExpression(fieldText);
+
+            if (resolvedValue != null && !resolvedValue.trim().isEmpty()) {
+                // Показываем загруженное значение
+                inpThreadsSchedule.setText(fieldText);
+                parseAndLoadProfile(resolvedValue);
+                log.info("✅ Loaded JMeter expression '{}' → {}", fieldText, resolvedValue);
+            } else {
+                inpThreadsSchedule.setText(fieldText);
+                log.warn("❌ JMeter expression '{}' resolved to empty", fieldText);
+            }
+        } catch (Exception e) {
+            log.error("❌ Failed to resolve '{}': {}", fieldText, e.getMessage());
+        }
+    }
+
+    private String resolveJMeterExpression(String expression) {
+        if (!expression.startsWith("${") || !expression.endsWith("}")) {
+            return expression; // Обычный текст
+        }
+
+        try {
+            // 1. ✅ System properties (-J или user.properties)
+            String varName = expression.substring(2, expression.length() - 1);
+            String resolved = System.getProperty(varName);
+            if (resolved != null) {
+                return resolved;
+            }
+
+            // 2. ✅ JMeter properties через JMeterUtils
+            resolved = org.apache.jmeter.util.JMeterUtils.getProperty(varName);
+            if (resolved != null) {
+                return resolved;
+            }
+
+            // 3. __P() функция - извлекаем имя свойства
+            if (varName.startsWith("__P(") && varName.endsWith(")")) {
+                String propName = varName.substring(4, varName.length() - 1);
+                resolved = System.getProperty(propName);
+                if (resolved != null) return resolved;
+                resolved = org.apache.jmeter.util.JMeterUtils.getProperty(propName);
+                if (resolved != null) return resolved;
+            }
+
+        } catch (Exception e) {
+            log.debug("Failed to resolve JMeter expression: {}", expression, e);
+        }
+
+        return null; // Не удалось разрешить
+    }
+
+
+    private void loadJMeterVariableOrProfile() {
+        String fieldText = inpThreadsSchedule.getText().trim();
+        log.debug("Processing field: '{}'", fieldText);
+
+        // Пробуем как JMeter выражение
+        String resolved = resolveJMeterExpression(fieldText);
+
+        if (resolved != null && !resolved.trim().isEmpty()) {
+            // ✅ Успешно разрешили JMeter переменную
+            inpThreadsSchedule.setText(fieldText);
+            parseAndLoadProfile(resolved);
+            log.info("✅ Loaded JMeter var '{}' → {}", fieldText, resolved);
+        } else if (!fieldText.isEmpty()) {
+            // ✅ Обычный профиль
+            parseAndLoadProfile(fieldText);
+            log.info("✅ Loaded profile: {}", fieldText);
+        }
+    }
+
 
     /**
      * Загружает профиль из текста при нажатии Enter
@@ -180,7 +251,6 @@ public class UltimateThreadGroupGui
         super.configure(tg);
         UltimateThreadGroup utg = (UltimateThreadGroup) tg;
 
-        // 1. Убеждаемся что tableModel существует
         if (tableModel == null) {
             createTableModel();
             if (grid != null) {
@@ -190,36 +260,31 @@ public class UltimateThreadGroupGui
 
         tableModel.removeTableModelListener(this);
 
-        // 2. Загружаем данные ТАБЛИЦЫ из .jmx
+        // Загружаем таблицу из .jmx
         JMeterProperty threadValues = utg.getData();
         if (!(threadValues instanceof NullProperty)) {
-            try {
-                JMeterPluginsUtils.collectionPropertyToTableModelRows((CollectionProperty) threadValues, tableModel);
-            } catch (Exception e) {
-                log.warn("Failed to load table data: {}", e.getMessage());
-            }
+            JMeterPluginsUtils.collectionPropertyToTableModelRows((CollectionProperty) threadValues, tableModel);
         }
 
-        // 3. Загружаем ПРОФИЛЬ
-        String profileValue = utg.getPropertyAsString(PROFILE_PROPERTY, "");
-        inpThreadsSchedule.setText(profileValue);
+        // Загружаем сохраненное значение поля (может содержать ${var})
+        String savedProfile = utg.getPropertyAsString(PROFILE_PROPERTY, "spawn(0,0s,0s,0s,0s)");
+        inpThreadsSchedule.setText(savedProfile);
 
-        // 4. Если профиль задан - ПЕРЕЗАПИСЫВАЕМ таблицу
-        if (!profileValue.trim().isEmpty()) {
-            log.debug("Loading profile: {}", profileValue);
-            parseAndLoadProfile(profileValue);
-        } else {
-            // Если профиля нет - оставляем данные из .jmx
-            tableModel.addTableModelListener(this);
-            updateUI();
-            return;
+        // Пробуем загрузить если это JMeter var
+        if (savedProfile.startsWith("${") && savedProfile.endsWith("}")) {
+            loadJMeterVariable();
+        } else if (!savedProfile.trim().isEmpty()) {
+            parseAndLoadProfile(savedProfile);
         }
+
+        tableModel.addTableModelListener(this);
 
         TestElement te = (TestElement) tg.getProperty(AbstractThreadGroup.MAIN_CONTROLLER).getObjectValue();
         if (te != null) {
             loopPanel.configure(te);
         }
         buttons.checkDeleteButtonStatus();
+        updateUI();
     }
 
     /**
