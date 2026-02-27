@@ -41,7 +41,7 @@ public class UltimateThreadGroup
 
     @Override
     protected void scheduleThread(JMeterThread thread, long tgStartTime) {
-        log.debug("Scheduling thread: " + thread.getThreadName());
+        log.debug("Scheduling thread: {}", thread.getThreadName());
         if (threadsToSchedule < 1) {
             if (!scheduleIT.hasNext()) {
                 throw new RuntimeException("Not enough schedule records for thread #" + thread.getThreadName());
@@ -75,16 +75,16 @@ public class UltimateThreadGroup
 
         if (brokenProp instanceof CollectionProperty) {
             if (usualProp == null || usualProp instanceof NullProperty) {
-                log.warn("Copying '" + EXTERNAL_DATA_PROPERTY + "' into '" + DATA_PROPERTY + "'");
+                log.warn("Copying '{}' into '{}'", EXTERNAL_DATA_PROPERTY, DATA_PROPERTY);
                 JMeterProperty newProp = brokenProp.clone();
                 newProp.setName(DATA_PROPERTY);
                 setProperty(newProp);
             }
-            log.warn("Removing property '" + EXTERNAL_DATA_PROPERTY + "' as invalid");
+            log.warn("Removing property '{}' as invalid", EXTERNAL_DATA_PROPERTY);
             removeProperty(EXTERNAL_DATA_PROPERTY);
         }
 
-        //log.info("getData: "+getProperty(DATA_PROPERTY));
+        //log.info("getData: "+ getProperty(DATA_PROPERTY));
         CollectionProperty overrideProp = getLoadFromExternalProperty();
         if (overrideProp != null) {
             return overrideProp;
@@ -101,7 +101,8 @@ public class UltimateThreadGroup
 
     private CollectionProperty getLoadFromExternalProperty() {
         String loadProp = JMeterUtils.getProperty(EXTERNAL_DATA_PROPERTY);
-        log.debug("Profile prop: " + loadProp);
+        log.debug("Profile prop: {}", loadProp);
+
         if (loadProp != null && !loadProp.isEmpty()) {
             //expected format : threads_schedule="spawn(1,1s,1s,1s,1s) spawn(2,1s,3s,1s,2s)"
             log.info("GUI threads profile will be ignored");
@@ -112,7 +113,7 @@ public class UltimateThreadGroup
                 try {
                     parseChunk(chunk, dataModel);
                 } catch (RuntimeException e) {
-                    log.warn("Wrong  chunk ignored: " + chunk, e);
+                    log.warn("Wrong  chunk ignored: {}", chunk, e);
                 }
             }
 
@@ -123,7 +124,7 @@ public class UltimateThreadGroup
     }
 
     private static void parseChunk(String chunk, PowerTableModel model) {
-        log.debug("Parsing chunk: " + chunk);
+        log.debug("Parsing chunk: {}", chunk);
         String[] parts = chunk.split("[(,]");
         String loadVar = parts[0].trim();
 

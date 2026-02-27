@@ -122,7 +122,6 @@ public class UltimateThreadGroupGui
                 // Показываем загруженное значение
                 inpThreadsSchedule.setText(fieldText);
                 parseAndLoadProfile(resolvedValue);
-                log.info("✅ Loaded JMeter expression '{}' → {}", fieldText, resolvedValue);
             } else {
                 inpThreadsSchedule.setText(fieldText);
                 log.warn("❌ JMeter expression '{}' resolved to empty", fieldText);
@@ -267,7 +266,7 @@ public class UltimateThreadGroupGui
         }
 
         // Загружаем сохраненное значение поля (может содержать ${var})
-        String savedProfile = utg.getPropertyAsString(PROFILE_PROPERTY, "spawn(0,0s,0s,0s,0s)");
+        String savedProfile = utg.getPropertyAsString(PROFILE_PROPERTY, "");
         inpThreadsSchedule.setText(savedProfile);
 
         // Пробуем загрузить если это JMeter var
@@ -311,7 +310,7 @@ public class UltimateThreadGroupGui
                 String spawnGroup = spawnGroups[i].trim();
                 log.debug("Processing spawn[{}]: '{}'", i, spawnGroup);
 
-                if (spawnGroup.isEmpty() || !spawnGroup.startsWith("spawn(")) {
+                if (!spawnGroup.startsWith("spawn(")) {
                     log.debug("Skipping invalid: {}", spawnGroup);
                     continue;
                 }
@@ -429,13 +428,12 @@ public class UltimateThreadGroupGui
         chart.repaint();
     }
 
-    private JPanel createControllerPanel() {
+    private void createControllerPanel() {
         loopPanel = new LoopControlPanel(false);
         LoopController looper = (LoopController) loopPanel.createTestElement();
         looper.setLoops(-1);
         looper.setContinueForever(true);
         loopPanel.configure(looper);
-        return loopPanel;
     }
 
     private Component createChart() {
