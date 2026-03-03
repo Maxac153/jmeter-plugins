@@ -125,7 +125,7 @@ public class UltimateThreadGroupGui
                 parseAndLoadProfile(resolvedValue);
             } else {
                 inpThreadsSchedule.setText(fieldText);
-                log.warn("❌ JMeter expression '{}' resolved to empty", fieldText);
+                parseAndLoadProfile("spawn(0,0s,0s,0s,0s)");
             }
         } catch (Exception e) {
             log.error("❌ Failed to resolve '{}': {}", fieldText, e.getMessage());
@@ -285,7 +285,6 @@ public class UltimateThreadGroupGui
             String[] spawnGroups = profileText.split("\\s+");
             log.debug("Found {} spawn groups", spawnGroups.length);
 
-            int rowCount = 0;
             for (int i = 0; i < spawnGroups.length; i++) {
                 String spawnGroup = spawnGroups[i].trim();
                 log.debug("Processing spawn[{}]: '{}'", i, spawnGroup);
@@ -317,7 +316,6 @@ public class UltimateThreadGroupGui
                         for (int col = 0; col < 5; col++) {
                             tableModel.setValueAt(parsed[col], rowIndex, col);
                         }
-                        rowCount++;
                         log.debug("✅ Added row {}: {}", rowIndex, Arrays.toString(parsed));
                     } else {
                         log.warn("❌ Invalid threads count: '{}'", parsed[0]);
