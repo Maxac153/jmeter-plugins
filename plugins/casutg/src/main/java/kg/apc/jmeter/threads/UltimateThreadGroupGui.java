@@ -18,6 +18,7 @@ import org.apache.jmeter.testelement.property.NullProperty;
 import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jmeter.threads.JMeterThread;
 import org.apache.jmeter.threads.gui.AbstractThreadGroupGui;
+import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +147,7 @@ public class UltimateThreadGroupGui
             }
 
             // 2. ✅ JMeter properties через JMeterUtils
-            resolved = org.apache.jmeter.util.JMeterUtils.getProperty(varName);
+            resolved = JMeterUtils.getProperty(varName);
             if (resolved != null) {
                 return resolved;
             }
@@ -156,7 +157,7 @@ public class UltimateThreadGroupGui
                 String propName = varName.substring(4, varName.length() - 1);
                 resolved = System.getProperty(propName);
                 if (resolved != null) return resolved;
-                resolved = org.apache.jmeter.util.JMeterUtils.getProperty(propName);
+                resolved = JMeterUtils.getProperty(propName);
                 if (resolved != null) return resolved;
             }
 
