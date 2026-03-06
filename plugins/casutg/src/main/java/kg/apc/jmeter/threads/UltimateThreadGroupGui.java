@@ -39,7 +39,7 @@ public class UltimateThreadGroupGui
         CellEditorListener {
 
     public static final String WIKIPAGE = "UltimateThreadGroup";
-    public static final String PROFILE_PROPERTY = "THREADS_PROFILE";
+    public static final String PROFILE_PROPERTY = "Profile";
     private static final Logger log = LoggerFactory.getLogger(UltimateThreadGroupGui.class);
     protected ConcurrentHashMap<String, AbstractGraphRow> model;
     private GraphPanelChart chart;
