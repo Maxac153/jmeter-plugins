@@ -8,7 +8,6 @@ import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
 import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.threads.JMeterThread;
-import org.apache.jmeter.util.JMeterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,7 @@ public class UltimateThreadGroup
     private static final Logger log = LoggerFactory.getLogger(UltimateThreadGroup.class);
 
     public static final String DATA_PROPERTY = "ultimatethreadgroupdata";
-    public static final String EXTERNAL_DATA_PROPERTY = "threads_schedule";
+    public static final String EXTERNAL_DATA_PROPERTY = "Profile";
 
     public static final int START_THREADS_CNT_FIELD_NO = 0;
     public static final int INIT_DELAY_FIELD_NO = 1;
@@ -98,7 +97,7 @@ public class UltimateThreadGroup
 
 
     private CollectionProperty getLoadFromExternalProperty() {
-        String loadProp = JMeterUtils.getProperty(EXTERNAL_DATA_PROPERTY);
+        String loadProp = getPropertyAsString(EXTERNAL_DATA_PROPERTY);
         log.debug("Profile prop: {}", loadProp);
 
         if (loadProp != null && !loadProp.isEmpty()) {
