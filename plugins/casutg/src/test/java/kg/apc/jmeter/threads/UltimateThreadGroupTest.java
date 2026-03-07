@@ -79,10 +79,10 @@ public class UltimateThreadGroupTest {
     public void testSchedule_Prop() {
         System.out.println("schedule from property");
         String threadsSchedule = "spawn(1,1s,1s,1s,1m) spawn(2,1s,3s,1s,2h)";
-        JMeterUtils.setProperty(UltimateThreadGroup.EXTERNAL_DATA_PROPERTY, threadsSchedule);
+        JMeterUtils.setProperty(UltimateThreadGroup.PROFILE_PROPERTY, threadsSchedule);
         UltimateThreadGroup instance = new UltimateThreadGroup();
         JMeterProperty result = instance.getData();
-        JMeterUtils.setProperty(UltimateThreadGroup.EXTERNAL_DATA_PROPERTY, ""); // clear!
+        JMeterUtils.setProperty(UltimateThreadGroup.PROFILE_PROPERTY, ""); // clear!
         assertEquals("[[1, 1, 1, 1, 60], [2, 1, 3, 1, 7200]]", result.toString());
     }
 
@@ -106,25 +106,25 @@ public class UltimateThreadGroupTest {
 
     @Test
     public void testGetData_broken_rename() {
-        CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.EXTERNAL_DATA_PROPERTY);
+        CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.PROFILE_PROPERTY);
         instance.setProperty(prop);
         JMeterProperty result = instance.getData();
         assertNotNull(instance.getProperty(UltimateThreadGroup.DATA_PROPERTY));
-        assertTrue(instance.getProperty(UltimateThreadGroup.EXTERNAL_DATA_PROPERTY) instanceof NullProperty);
+        assertTrue(instance.getProperty(UltimateThreadGroup.PROFILE_PROPERTY) instanceof NullProperty);
         assertFalse(result instanceof NullProperty);
         assertEquals(prop.getStringValue(), result.getStringValue());
     }
 
     @Test
     public void testGetData_broken_del() {
-        CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.EXTERNAL_DATA_PROPERTY);
+        CollectionProperty prop = JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.PROFILE_PROPERTY);
         instance.setProperty(prop);
         CollectionProperty prop2 = JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.DATA_PROPERTY);
         instance.setProperty(prop2);
 
         JMeterProperty result = instance.getData();
         assertEquals(prop2, instance.getProperty(UltimateThreadGroup.DATA_PROPERTY));
-        assertTrue(instance.getProperty(UltimateThreadGroup.EXTERNAL_DATA_PROPERTY) instanceof NullProperty);
+        assertTrue(instance.getProperty(UltimateThreadGroup.PROFILE_PROPERTY) instanceof NullProperty);
         assertFalse(result instanceof NullProperty);
         assertEquals(prop.getStringValue(), result.getStringValue());
     }

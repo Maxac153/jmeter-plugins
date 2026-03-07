@@ -1,6 +1,7 @@
 package kg.apc.jmeter.threads;
 
 import kg.apc.jmeter.JMeterPluginsUtils;
+import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.PowerTableModel;
 import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.testelement.property.CollectionProperty;
@@ -22,7 +23,8 @@ public class UltimateThreadGroup
     private static final Logger log = LoggerFactory.getLogger(UltimateThreadGroup.class);
 
     public static final String DATA_PROPERTY = "ultimatethreadgroupdata";
-    public static final String EXTERNAL_DATA_PROPERTY = "Profile";
+    public static final String PROFILE_PROPERTY = "Profile";
+    private final boolean GUI_MODE = GuiPackage.getInstance() == null;
 
     public static final int START_THREADS_CNT_FIELD_NO = 0;
     public static final int INIT_DELAY_FIELD_NO = 1;
@@ -69,23 +71,25 @@ public class UltimateThreadGroup
     }
 
     public JMeterProperty getData() {
-        JMeterProperty brokenProp = getProperty(EXTERNAL_DATA_PROPERTY);
+        JMeterProperty brokenProp = getProperty(PROFILE_PROPERTY);
         JMeterProperty usualProp = getProperty(DATA_PROPERTY);
 
         if (brokenProp instanceof CollectionProperty) {
             if (usualProp == null || usualProp instanceof NullProperty) {
-                log.warn("Copying '{}' into '{}'", EXTERNAL_DATA_PROPERTY, DATA_PROPERTY);
+                log.warn("Copying '{}' into '{}'", PROFILE_PROPERTY, DATA_PROPERTY);
                 JMeterProperty newProp = brokenProp.clone();
                 newProp.setName(DATA_PROPERTY);
                 setProperty(newProp);
             }
-            log.warn("Removing property '{}' as invalid", EXTERNAL_DATA_PROPERTY);
-            removeProperty(EXTERNAL_DATA_PROPERTY);
+            log.warn("Removing property '{}' as invalid", PROFILE_PROPERTY);
+            removeProperty(PROFILE_PROPERTY);
         }
 
-        CollectionProperty overrideProp = getLoadFromExternalProperty();
-        if (overrideProp != null) {
-            return overrideProp;
+        if (GUI_MODE) {
+            CollectionProperty overrideProp = getLoadFromExternalProperty();
+            if (overrideProp != null) {
+                return overrideProp;
+            }
         }
 
         return getProperty(DATA_PROPERTY);
@@ -95,9 +99,8 @@ public class UltimateThreadGroup
         setProperty(rows);
     }
 
-
     private CollectionProperty getLoadFromExternalProperty() {
-        String loadProp = getPropertyAsString(EXTERNAL_DATA_PROPERTY);
+        String loadProp = getPropertyAsString(PROFILE_PROPERTY);
         log.debug("Profile prop: {}", loadProp);
 
         if (loadProp != null && !loadProp.isEmpty()) {
@@ -114,7 +117,7 @@ public class UltimateThreadGroup
                 }
             }
 
-            log.info("Setting threads profile from property {}: {}", EXTERNAL_DATA_PROPERTY, loadProp);
+            log.info("Setting threads profile from property {}: {}", PROFILE_PROPERTY, loadProp);
             return JMeterPluginsUtils.tableModelRowsToCollectionProperty(dataModel, UltimateThreadGroup.DATA_PROPERTY);
         }
         return null;

@@ -71,20 +71,15 @@ public class UltimateThreadGroupGui
         containerPanel.add(GuiBuilderHelper.getComponentWithMargin(createChart(), 2, 2, 0, 2), BorderLayout.CENTER);
         add(containerPanel, BorderLayout.CENTER);
 
-        // this magic LoopPanel provides functionality for thread loops
         createControllerPanel();
     }
 
-    /**
-     * ✅ createParamsPanel() БЕЗ кнопки
-     */
     private JPanel createParamsPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Threads Schedule"));
 
         createTableModel();
 
-        // Поле Profile (без кнопки)
         JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
         JLabel inputLabel = new JLabel("Profile:");
         inputPanel.add(inputLabel, BorderLayout.WEST);
@@ -117,11 +112,9 @@ public class UltimateThreadGroupGui
         if (fieldText.isEmpty()) return;
 
         try {
-            // ✅ ПРАВИЛЬНЫЙ способ обработки JMeter функций/переменных
             String resolvedValue = resolveJMeterExpression(fieldText);
 
             if (resolvedValue != null && !resolvedValue.trim().isEmpty()) {
-                // Показываем загруженное значение
                 inpThreadsSchedule.setText(fieldText);
                 parseAndLoadProfile(resolvedValue);
             } else {
@@ -134,10 +127,6 @@ public class UltimateThreadGroupGui
     }
 
     private String resolveJMeterExpression(String expression) {
-        if (!expression.startsWith("${") || !expression.endsWith("}")) {
-            return expression; // Обычный текст
-        }
-
         try {
             // 1. ✅ System properties (-J или user.properties)
             String varName = expression.substring(2, expression.length() - 1);
@@ -165,7 +154,7 @@ public class UltimateThreadGroupGui
             log.debug("Failed to resolve JMeter expression: {}", expression, e);
         }
 
-        return null; // Не удалось разрешить
+        return null;
     }
 
 
